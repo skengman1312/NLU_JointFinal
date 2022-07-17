@@ -167,6 +167,7 @@ def load_dataset(mode="train", dataset ="SNIPS"):
 
     dataset = TensorDataset(all_input_ids, all_attention_mask,
                             all_token_type_ids, all_intent_label_ids, all_slot_labels_ids)
+    return dataset
 
 
 
