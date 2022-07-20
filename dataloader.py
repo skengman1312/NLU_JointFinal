@@ -67,7 +67,7 @@ class JoinProcessor:
         return examples
 
 
-def convert_examples_to_features(examples, max_seq_len=50, tokenizer=BertTokenizer, pad_token_label_id=-100,
+def convert_examples_to_features(examples, max_seq_len=50, tokenizer=BertTokenizer, pad_token_label_id=0,
                                  cls_token_segment_id=0, pad_token_segment_id=0, sequence_a_segment_id=0,
                                  mask_padding_with_zero=True):
     cls_token = tokenizer.cls_token
