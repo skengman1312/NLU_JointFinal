@@ -22,7 +22,7 @@ class SlotsClassifier(nn.Module):
     """
 
     def __init__(self, input_dim, n_slots_labels, dropout_rate=0.1):
-        super(IntentClassifier, self).__init__()
+        super(SlotsClassifier, self).__init__()
         self.dropout = nn.Dropout(dropout_rate)
         self.linear = nn.Linear(input_dim, n_slots_labels)
 

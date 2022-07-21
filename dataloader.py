@@ -172,7 +172,7 @@ def load_dataset(mode="train", dataset ="SNIPS"):
 
 
 
-load_dataset()
+#load_dataset()
 # jp = JoinProcessor("SNIPS")
 # data = jp.read_examples("train")
 # convert_examples_to_features(data)
