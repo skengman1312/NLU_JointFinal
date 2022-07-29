@@ -35,6 +35,7 @@ class JointTrainer:
 
         self.device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
         self.model.to(self.device)
+        print(f"device: {self.device}")
 
     def train(self):
         train_sampler = RandomSampler(self.train_dataset)
