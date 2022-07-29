@@ -110,6 +110,6 @@ class JointTrainer:
         model = self.model.module if hasattr(self.model, "module") else self.model
         model.save_pretrained("/trained_models/")
 
-
-train_data = load_dataset()
-t = JointTrainer(args="", train_dataset =train_data)
+if __name__ == '__main__':
+    train_data = load_dataset()
+    t = JointTrainer(args="", train_dataset =train_data)
