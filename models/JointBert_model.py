@@ -19,12 +19,12 @@ class JointBERT(BertPreTrainedModel):
         bert_out = self.bert(input_ids=input_ids, attention_mask=attention_mask,
                              token_type_ids=token_type_ids)  # remember: token type ids refer to the sentence sgmentation
         # sequence_output, pooled_output, (hidden_states), (attentions) output structure
-        sequence_out = bert_out.bert_out[0]
+        sequence_out = bert_out[0]
         pooled_out = bert_out[1]
 
         # logits of the classifications
         intent_logit = self.intent_classifier(pooled_out)
-        slot_logit = self.slot_classifier(pooled_out)
+        slot_logit = self.slot_classifier(sequence_out)
 
         # computing the loss
         loss = 0
@@ -48,8 +48,9 @@ class JointBERT(BertPreTrainedModel):
             slot_loss_fun = nn.CrossEntropyLoss(ignore_index=0)  # ignore index to skip the loss computation on
             # padding tokens, remeber that we have masked the padding tokens with 0
             if attention_mask is not None:
+                print(attention_mask.shape)
                 active_loss = attention_mask.view(-1) == 1
-                active_logits = slot_logit.view(-1, self.num_intent_labels)[active_loss]
+                active_logits = slot_logit.view(-1, self.num_slot_labels)[active_loss]
                 active_labels = slot_labels_ids.view(-1)[active_loss]
                 slot_loss = slot_loss_fun(active_logits, active_labels)
             else:

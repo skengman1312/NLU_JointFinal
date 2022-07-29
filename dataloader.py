@@ -164,7 +164,6 @@ def load_dataset(mode="train", dataset ="SNIPS"):
     all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
     all_intent_label_ids = torch.tensor([f.intent_label_id for f in features], dtype=torch.long)
     all_slot_labels_ids = torch.tensor([f.slot_labels_ids for f in features], dtype=torch.long)
-
     dataset = TensorDataset(all_input_ids, all_attention_mask,
                             all_token_type_ids, all_intent_label_ids, all_slot_labels_ids)
     return dataset
