@@ -108,7 +108,7 @@ class JointTrainer:
         if not os.path.exists("./trained_models/"):
             os.makedirs("./trained_models/", exist_ok=True)
         model = self.model.module if hasattr(self.model, "module") else self.model
-        model.save_pretrained("/trained_models/")
+        model.save_pretrained("./trained_models/")
 
 if __name__ == '__main__':
     train_data = load_dataset()
