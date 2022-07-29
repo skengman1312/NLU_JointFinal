@@ -33,7 +33,7 @@ class JointTrainer:
                                                 intent_labels=self.intent_labels,
                                                 slot_labels=self.slot_labels)
 
-        self.device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
         print(f"device: {self.device}")
 
