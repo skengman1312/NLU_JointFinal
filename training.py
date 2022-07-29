@@ -80,7 +80,6 @@ class JointTrainer:
                           'token_type_ids': batch[2],
                           'intent_label_ids': batch[3],
                           'slot_labels_ids': batch[4]}
-                print([len(f) for f in inputs])
                 outputs = self.model(**inputs)
 
                 loss = outputs[0]
