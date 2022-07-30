@@ -8,8 +8,11 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    train = load_dataset()
-    tr = training.JointTrainer("", train_dataset= train)
-    tr.train()
+    train_data = load_dataset()
+    dev_data = load_dataset(mode="valid")
+    # test_data = load_dataset(mode = "test")
+    t = training.JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data)
+    t.load_model()
+    t.eval("dev")
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
