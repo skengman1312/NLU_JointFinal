@@ -104,9 +104,10 @@ class JointTrainer:
                     self.model.zero_grad()
                     global_steps += 1
 
-                    if global_steps % 200 == 0:
+                    if global_steps % 200 == 0:  # can be tuned
                         self.save_model()
-                        self.eval(mode= "dev")
+                    if global_steps % 1000 == 0:
+                        self.eval(mode="dev")
 
         return global_steps, train_loss / global_steps
 
@@ -194,11 +195,18 @@ class JointTrainer:
                     out_slot_labels[i].append(label_map[out_slot_label_ids[i][j]])
                     slot_pred_list[i].append(label_map[slot_preds[i][j]])
 
-        ev_slot = classification_report([y for u in out_slot_labels for y in u], [y for u in slot_pred_list for y in u])
-        ev_intent = classification_report(out_intent_label_ids, intent_preds)
+        ev_slot = classification_report([y for u in out_slot_labels for y in u], [y for u in slot_pred_list for y in u],
+                                        output_dict=mode == "dev")
+        ev_intent = classification_report(out_intent_label_ids, intent_preds, output_dict=mode == "dev")
         # print(slot_pred_list)
-        print(ev_intent)
-        print(ev_slot)
+        ev_met = {"slots": ev_slot, "intent": ev_intent}
+
+        if mode == "dev":
+            for t, m in ev_met.items():
+                print(f"{t}: {m['weighted avg']}")
+        else:
+            print(ev_met)
+        return ev_met
 
     def save_model(self):
         if not os.path.exists("./trained_models/"):
@@ -228,7 +236,7 @@ class JointTrainer:
 if __name__ == '__main__':
     train_data = load_dataset()
     dev_data = load_dataset(mode="valid")
-    test_data = load_dataset(mode = "test")
-    t = JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data)
+    # test_data = load_dataset(mode = "test")
+    t = JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data)
     t.load_model()
-    t.eval("dev")
+    res = t.eval("dev")
