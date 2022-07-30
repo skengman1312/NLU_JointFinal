@@ -25,14 +25,14 @@ class JointTrainer:
                             open(f"./data/{dataset}/slot_labels.txt", 'r', encoding='utf-8')]
 
         # model and configuration
-        self.config = BertConfig
-        self.config = self.config.from_pretrained('bert-base-uncased', finetuning_task=dataset)
+        self.config_type = BertConfig
+        self.config = self.config_type.from_pretrained('bert-base-uncased', finetuning_task=dataset)
 
-        self.model = JointBERT
-        self.model = self.model.from_pretrained('bert-base-uncased',
-                                                config=self.config,
-                                                intent_labels=self.intent_labels,
-                                                slot_labels=self.slot_labels)
+        self.model_type = JointBERT
+        self.model = self.model_type.from_pretrained('bert-base-uncased',
+                                                     config=self.config,
+                                                     intent_labels=self.intent_labels,
+                                                     slot_labels=self.slot_labels)
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
@@ -58,7 +58,8 @@ class JointTrainer:
         lr, eps = 5e-5, 1e-8  # learning rate and eps to be tuned
         optimizer = AdamW(optimizer_params, lr=lr, eps=eps)
         warmup_steps = 0  # to be tuned
-        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=t_steps)
+        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                    num_training_steps=t_steps)
 
         # training phase
 
@@ -103,7 +104,7 @@ class JointTrainer:
                     if global_steps % 200 == 0:
                         self.save_model()
 
-        return global_steps, train_loss/global_steps
+        return global_steps, train_loss / global_steps
 
     def save_model(self):
         if not os.path.exists("./trained_models/"):
@@ -113,6 +114,23 @@ class JointTrainer:
         model = self.model.module if hasattr(self.model, "module") else self.model
         model.save_pretrained(f"./trained_models/{self.dataset}")
 
+    def load_model(self):
+        # check the existence of the model
+        if not os.path.exists(f"./trained_models/{self.dataset}"):
+            raise Exception(f"Train the model first, no pretrained model for {self.dataset}")
+
+        try:
+
+            self.model = self.model_type.from_pretrained(f"./trained_models/{self.dataset}",
+                                                         intent_labels=self.intent_labels,
+                                                         slot_labels=self.slot_labels)
+            self.model.to(self.device)
+            print(f"{self.dataset} model loaded succesfully")
+        except:
+
+            raise Exception(f"Something went wrong when loading {self.dataset} model")
+
+
 if __name__ == '__main__':
     train_data = load_dataset()
-    t = JointTrainer(args="", train_dataset =train_data)
+    t = JointTrainer(args="", train_dataset=train_data)
