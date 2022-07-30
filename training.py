@@ -16,6 +16,7 @@ class JointTrainer:
         self.train_dataset = train_dataset
         self.dev_dataset = dev_dataset
         self.test_dataset = test_dataset
+        self.dataset = dataset
 
         # labels
         self.intent_labels = [label.strip() for label in
@@ -107,8 +108,10 @@ class JointTrainer:
     def save_model(self):
         if not os.path.exists("./trained_models/"):
             os.makedirs("./trained_models/", exist_ok=True)
+        if not os.path.exists(f"./trained_models/{self.dataset}"):
+            os.makedirs(f"./trained_models/{self.dataset}", exist_ok=True)
         model = self.model.module if hasattr(self.model, "module") else self.model
-        model.save_pretrained("./trained_models/")
+        model.save_pretrained(f"./trained_models/{self.dataset}")
 
 if __name__ == '__main__':
     train_data = load_dataset()
