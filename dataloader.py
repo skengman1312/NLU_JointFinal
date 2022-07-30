@@ -40,7 +40,7 @@ class JoinProcessor:
 
     def read_examples(self, mode: str):
         """
-        :param mode: "train" "test" or "dev"
+        :param mode: "train" "test" or "valid"
         :return:
         """
         data = pd.read_json(f"./data/{self.dataset}/{mode}.json")
