@@ -205,7 +205,8 @@ class JointTrainer:
             for t, m in ev_met.items():
                 print(f"{t}: {m['weighted avg']}")
         else:
-            print(ev_met)
+            for t, m in ev_met.items():
+                print(f"{t}:\n{m}")
         return ev_met
 
     def save_model(self):
