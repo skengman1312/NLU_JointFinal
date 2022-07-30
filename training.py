@@ -172,34 +172,32 @@ class JointTrainer:
             else:  # Prediction for the subsequent batches, now we need to concat the results
                 slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
                 out_slot_label_ids = np.append(out_slot_label_ids, inputs["slot_labels_ids"].detach().cpu().numpy(),
-                                                 axis=0)
+                                               axis=0)
 
-        eval_loss = eval_loss/eval_steps
+        eval_loss = eval_loss / eval_steps
         res = {"loss": eval_loss}
 
         # Intent results
-        intent_preds = np.argmax(intent_preds, axis=1) # argamx tells us which class corresponds to the highest logit
+        intent_preds = np.argmax(intent_preds, axis=1)  # argamx tells us which class corresponds to the highest logit
 
         # Slots results
         slot_preds = np.argmax(slot_preds, axis=2)
         label_map = {i: label for i, label in enumerate(self.slot_labels)}
-        out_slot_labels = [[] for i in range(out_slot_label_ids.shape[0])] # same size as the total number of predictions
+        out_slot_labels = [[] for i in
+                           range(out_slot_label_ids.shape[0])]  # same size as the total number of predictions
         slot_pred_list = [[] for i in range(out_slot_label_ids.shape[0])]
 
         for i in range(out_slot_label_ids.shape[0]):
             for j in range(out_slot_label_ids.shape[1]):
-                if out_slot_label_ids[i,j] != 0: #remember that 0 is the pad token id and has to be ignored
+                if out_slot_label_ids[i, j] != 0:  # remember that 0 is the pad token id and has to be ignored
                     out_slot_labels[i].append(label_map[out_slot_label_ids[i][j]])
                     slot_pred_list[i].append(label_map[slot_preds[i][j]])
 
         ev_slot = classification_report([y for u in out_slot_labels for y in u], [y for u in slot_pred_list for y in u])
         ev_intent = classification_report(out_intent_label_ids, intent_preds)
-        #print(slot_pred_list)
+        # print(slot_pred_list)
         print(ev_intent)
         print(ev_slot)
-
-
-
 
     def save_model(self):
         if not os.path.exists("./trained_models/"):
@@ -228,8 +226,8 @@ class JointTrainer:
 
 if __name__ == '__main__':
     train_data = load_dataset()
-    dev_data = load_dataset(mode = "valid")
-    #test_data = load_dataset(mode = "test")
+    dev_data = load_dataset(mode="valid")
+    # test_data = load_dataset(mode = "test")
     t = JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data)
     t.load_model()
     t.eval("dev")
