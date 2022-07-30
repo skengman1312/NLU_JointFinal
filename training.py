@@ -6,6 +6,9 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import BertConfig, AdamW, get_linear_schedule_with_warmup
 from models.JointBert_model import JointBERT
 from dataloader import Features, load_dataset
+from utils import compute_metrics
+from conll import evaluate
+from sklearn.metrics import classification_report
 
 
 class JointTrainer:
@@ -106,6 +109,98 @@ class JointTrainer:
 
         return global_steps, train_loss / global_steps
 
+    def eval(self, mode):
+
+        # select data to evaluate the model
+        if mode == "test":
+            data = self.test_dataset
+        elif mode == "dev":
+            data = self.dev_dataset
+        else:
+            raise Exception(f"invalid mode selected: {mode}\nEval modes are: dev and test")
+
+        sampler = SequentialSampler(data)
+        dataloader = DataLoader(dataset=data, sampler=sampler, batch_size=32)
+
+        # evaluation
+        print(f"Eval on {mode} dataset started:")
+
+        eval_loss = 0.0
+        eval_steps = 0
+        intent_preds, out_intent_label_ids = None, None
+        slot_preds, out_slot_label_ids = None, None
+
+        self.model.eval()
+
+        for batch in tqdm(dataloader, desc=f"Evaluation on {self.dataset} {mode}"):
+            # moving the batch to device
+            batch = tuple(t.to(self.device) for t in batch)
+            with torch.no_grad():
+                inputs = {'input_ids': batch[0],
+                          'attention_mask': batch[1],
+                          'token_type_ids': batch[2],
+                          'intent_label_ids': batch[3],
+                          'slot_labels_ids': batch[4]}
+
+                outputs = self.model(**inputs)
+
+                tmp_loss, (intent_logits, slot_logits) = outputs[:2]
+                # Remember! output = loss, logits; logits = (intent_logits, slot_logits)
+
+                eval_loss += tmp_loss.mean().item()
+            eval_steps += 1
+
+            # Intent Prediction
+
+            # Prediction for the first batch when the container variable is still None
+            if intent_preds is None:
+                intent_preds = intent_logits.detach().cpu().numpy()  # detach un-bind the tensor form the grad graph
+                # and cpu makes sure is not hosted on the cuda device
+                out_intent_label_ids = inputs["intent_label_ids"].detach().cpu().numpy()
+            else:  # Prediction for the subsequent batches, now we need to concat the results
+                intent_preds = np.append(intent_preds, intent_logits.detach().cpu().numpy(), axis=0)
+                out_intent_label_ids = np.append(out_intent_label_ids,
+                                                 inputs["intent_label_ids"].detach().cpu().numpy(), axis=0)
+
+            # Slots Prediction
+
+            # Prediction for the first batch when the container variable is still None
+            if slot_preds is None:  # vanilla version without CRF, consider for further implementations
+                slot_preds = slot_logits.detach().cpu().numpy()  # detach un-bind the tensor form the grad graph
+                # and cpu makes sure is not hosted on the cuda device
+                out_slot_label_ids = inputs["slot_labels_ids"].detach().cpu().numpy()
+            else:  # Prediction for the subsequent batches, now we need to concat the results
+                slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
+                out_slot_label_ids = np.append(out_slot_label_ids, inputs["slot_labels_ids"].detach().cpu().numpy(),
+                                                 axis=0)
+
+        eval_loss = eval_loss/eval_steps
+        res = {"loss": eval_loss}
+
+        # Intent results
+        intent_preds = np.argmax(intent_preds, axis=1) # argamx tells us which class corresponds to the highest logit
+
+        # Slots results
+        slot_preds = np.argmax(slot_preds, axis=2)
+        label_map = {i: label for i, label in enumerate(self.slot_labels)}
+        out_slot_labels = [[] for i in range(out_slot_label_ids.shape[0])] # same size as the total number of predictions
+        slot_pred_list = [[] for i in range(out_slot_label_ids.shape[0])]
+
+        for i in range(out_slot_label_ids.shape[0]):
+            for j in range(out_slot_label_ids.shape[1]):
+                if out_slot_label_ids[i,j] != 0: #remember that 0 is the pad token id and has to be ignored
+                    out_slot_labels[i].append(label_map[out_slot_label_ids[i][j]])
+                    slot_pred_list[i].append(label_map[slot_preds[i][j]])
+
+        ev_slot = classification_report([y for u in out_slot_labels for y in u], [y for u in slot_pred_list for y in u])
+        ev_intent = classification_report(out_intent_label_ids, intent_preds)
+        #print(slot_pred_list)
+        print(ev_intent)
+        print(ev_slot)
+
+
+
+
     def save_model(self):
         if not os.path.exists("./trained_models/"):
             os.makedirs("./trained_models/", exist_ok=True)
@@ -133,4 +228,8 @@ class JointTrainer:
 
 if __name__ == '__main__':
     train_data = load_dataset()
-    t = JointTrainer(args="", train_dataset=train_data)
+    dev_data = load_dataset(mode = "valid")
+    #test_data = load_dataset(mode = "test")
+    t = JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data)
+    t.load_model()
+    t.eval("dev")
