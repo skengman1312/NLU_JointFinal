@@ -106,6 +106,7 @@ class JointTrainer:
 
                     if global_steps % 200 == 0:
                         self.save_model()
+                        self.eval(mode= "dev")
 
         return global_steps, train_loss / global_steps
 
@@ -227,7 +228,7 @@ class JointTrainer:
 if __name__ == '__main__':
     train_data = load_dataset()
     dev_data = load_dataset(mode="valid")
-    # test_data = load_dataset(mode = "test")
-    t = JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data)
+    test_data = load_dataset(mode = "test")
+    t = JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data)
     t.load_model()
     t.eval("dev")

@@ -10,9 +10,10 @@ def print_hi(name):
 if __name__ == '__main__':
     train_data = load_dataset()
     dev_data = load_dataset(mode="valid")
-    # test_data = load_dataset(mode = "test")
-    t = training.JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data)
-    t.load_model()
-    t.eval("dev")
+    test_data = load_dataset(mode = "test")
+    t = training.JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data)
+    t.train()
+    t.eval("test")
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
