@@ -3,6 +3,7 @@ import logging
 from transformers import BertTokenizer
 import torch
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from torch.utils.data import TensorDataset
 
@@ -43,8 +44,15 @@ class JoinProcessor:
         :param mode: "train" "test" or "valid"
         :return:
         """
-        data = pd.read_json(f"./data/{self.dataset}/{mode}.json")
+        data_path = f"./data/{self.dataset}/{mode}.json"
+        if (self.dataset == "ATIS") and (mode == "valid"):  # ATIS does not have a dev set so we hav to split on our own
+            data_path = "./data/ATIS/test.json"  # very unelegant but does the job
+        data = pd.read_json(data_path)
         # print(data)
+        if (self.dataset == "ATIS") and (mode != "train"):
+            test, dev = train_test_split(data, test_size=0.5, random_state=1312)  # we set a random state in order
+            # to have alwasy the same split
+            data = test if mode == "test" else dev
         return self._make_example(data, mode)
 
     def _make_example(self, data, mode):
@@ -140,7 +148,7 @@ def convert_examples_to_features(examples, max_seq_len=50, tokenizer=BertTokeniz
     return features
 
 
-def load_dataset(mode="train", dataset ="SNIPS"):
+def load_dataset(mode="train", dataset="SNIPS"):
     if not os.path.exists("cache"):
         print("cache directoy is created")
         os.makedirs("cache")
@@ -168,10 +176,7 @@ def load_dataset(mode="train", dataset ="SNIPS"):
                             all_token_type_ids, all_intent_label_ids, all_slot_labels_ids)
     return dataset
 
-
-
-
-#load_dataset()
+# load_dataset()
 # jp = JoinProcessor("SNIPS")
 # data = jp.read_examples("train")
 # convert_examples_to_features(data)
