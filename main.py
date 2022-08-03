@@ -11,7 +11,7 @@ if __name__ == '__main__':
     train_data = load_dataset(dataset="ATIS")
     dev_data = load_dataset(mode="valid", dataset= "ATIS")
     test_data = load_dataset(mode = "test", dataset="ATIS")
-    t = training.JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data)
+    t = training.JointTrainer(args="", dataset="ATIS", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data)
     t.train()
     t.eval("test")
 
