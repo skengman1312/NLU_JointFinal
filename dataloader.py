@@ -7,8 +7,6 @@ from sklearn.model_selection import train_test_split
 
 from torch.utils.data import TensorDataset
 
-logger = logging.getLogger(__name__)
-
 
 class Example:
 
@@ -46,13 +44,13 @@ class JoinProcessor:
         """
         data_path = f"./data/{self.dataset}/{mode}.json"
         if (self.dataset == "ATIS") and (mode == "valid"):  # ATIS does not have a dev set so we hav to split on our own
-            data_path = "./data/ATIS/test.json"  # very unelegant but does the job
+            data_path = "./data/ATIS/train.json"  # very unelegant but does the job
         data = pd.read_json(data_path)
-        # print(data)
-        if (self.dataset == "ATIS") and (mode != "train"):
-            test, dev = train_test_split(data, test_size=0.5, random_state=1312)  # we set a random state in order
+        #print(data)
+        if (self.dataset == "ATIS") and (mode != "test"):
+            train, dev = train_test_split(data, test_size=0.12, random_state=1312)  # we set a random state in order
             # to have alwasy the same split
-            data = test if mode == "test" else dev
+            data = train if mode == "train" else dev
         return self._make_example(data, mode)
 
     def _make_example(self, data, mode):
