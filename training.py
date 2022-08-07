@@ -196,8 +196,9 @@ class JointTrainer:
                     slot_pred_list[i].append(label_map[slot_preds[i][j]])
 
         ev_slot = classification_report([y for u in out_slot_labels for y in u], [y for u in slot_pred_list for y in u],
+                                        zero_division=False,
                                         output_dict=mode == "dev")
-        ev_intent = classification_report(out_intent_label_ids, intent_preds, output_dict=mode == "dev")
+        ev_intent = classification_report(out_intent_label_ids, intent_preds,  zero_division=False, output_dict=mode == "dev")
         # print(slot_pred_list)
         ev_met = {"slots": ev_slot, "intent": ev_intent}
 
