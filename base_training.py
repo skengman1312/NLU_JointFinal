@@ -1,6 +1,7 @@
 import torch.optim as optim
 import torch.nn as nn
 from models.baseline_model import *
+from models.baseline_extended_model import *
 from torch.utils.data import DataLoader
 from tqdm import tqdm, trange
 from sklearn.metrics import classification_report
@@ -8,7 +9,7 @@ import numpy as np
 
 class BaselineTrainer:
 
-    def __init__(self, dataset="SNIPS"):
+    def __init__(self, model_type = ModelIAS, dataset="SNIPS"):
         self.hid_size = 200
         self.emb_size = 300
         PAD_TOKEN = 0
@@ -30,7 +31,7 @@ class BaselineTrainer:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"device: {self.device}")
 
-        self.model = ModelIAS(self.hid_size, self.out_slot, self.out_int, self.emb_size, self.vocab_len,
+        self.model = model_type(self.hid_size, self.out_slot, self.out_int, self.emb_size, self.vocab_len,
                               pad_index=PAD_TOKEN).to(self.device)
         self.model.apply(init_weights)
 
@@ -131,7 +132,7 @@ class BaselineTrainer:
 
     def epoch_trainer(self, train_data, dev_data):
         n_epochs = 200
-        patience = 3
+        patience = 100
         losses_train = []
         losses_dev = []
         sampled_epochs = []
@@ -143,7 +144,7 @@ class BaselineTrainer:
                 losses_train.append(np.asarray(loss).mean())
                 results_dev, intent_res, loss_dev = self.eval(dev_data)
                 losses_dev.append(np.asarray(loss_dev).mean())
-                print(results_dev)
+                print(results_dev['weighted avg'])
                 f1 = results_dev['weighted avg']['f1-score']
 
                 if f1 > best_f1:
@@ -152,6 +153,7 @@ class BaselineTrainer:
                     patience -= 1
                 if patience <= 0:  # Early stoping with patient
                     break  # Not nice but it keeps the code clean
+                    print("patience is over")
 
         results_test, intent_test, _ = self.eval(dev_data)
         print(results_test, intent_test)
