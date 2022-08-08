@@ -3,9 +3,18 @@ import torch.nn as nn
 from models.baseline_model import *
 from models.baseline_extended_model import *
 from torch.utils.data import DataLoader
-from tqdm import tqdm, trange
 from sklearn.metrics import classification_report
 import numpy as np
+import os
+from tqdm import tqdm, trange
+
+
+# if "drive" in os.getcwd():
+#     from tqdm.notebook import tqdm, trange
+# else:
+
+
+print(f"Running on colab: {'drive' in os.getcwd()}")
 
 class BaselineTrainer:
 
@@ -156,7 +165,7 @@ class BaselineTrainer:
                     print("patience is over")
 
         results_test, intent_test, _ = self.eval(dev_data)
-        print(results_test, intent_test)
+        print(results_test,"\n______\n", intent_test)
         #intent_acc.append(intent_test['accuracy'])
         #slot_f1s.append(results_test['weighted_avg']['f1-score'])
 
