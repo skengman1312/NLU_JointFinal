@@ -3,31 +3,86 @@ from dataloader import load_dataset
 import base_training
 from models.baseline_extended_model import ExtendedModel
 import os
-RunningInCOLAB = 'google.colab' in str(get_ipython()) if hasattr(__builtins__,'__IPYTHON__') else False
+import argparse
+
+RunningInCOLAB = 'google.colab' in str(get_ipython()) if hasattr(__builtins__, '__IPYTHON__') else False
 
 if "drive" in os.getcwd():
     print("Running in colab notebook")
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+
+def main(args):
+    """
+    main parsing function
+    """
+    model_trainer_map = {"JointBert": training.JointTrainer,
+                         "baseline": base_training.BaselineTrainer,
+                         "extended_baseline": base_training.BaselineTrainer}
+    if args.full_evaluation == True:
+        print(args)
+        print("Full eval not yet implemented")
+        return
+
+    train_data = load_dataset(mode="train", dataset=args.dataset) if args.train else None
+    dev_data = load_dataset(mode="valid", dataset=args.dataset) if args.train else None
+    test_data = load_dataset(mode="test", dataset=args.dataset) if args.test else None
+
+    train_handler = model_trainer_map[args.model_type]
+
+    if args.model_type == "JointBert":
+        t = train_handler("", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data,
+                          dataset=args.dataset)
+        if args.train:
+            t.train()
+        if args.test:
+            t.eval(mode="test")
+        return
+    elif args.model_type == "baseline":
+        t = train_handler(dataset=args.dataset)
+    elif args.model_type == "extended_baseline":
+        t = train_handler(model_type =ExtendedModel ,  dataset=args.dataset)
+    else:
+        raise Exception("Ivalid model type choosen, available model types are JointBert, baseline and extended_baseline")
+    if args.train:
+        t.epoch_trainer(train_data=train_data, dev_data=dev_data)
+    if args.test:
+        rs, ri, _ = t.eval(data=test_data, dict_out=False)
+        print(rs)
+        print(ri)
 
 
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    train_data = load_dataset(dataset="ATIS")
-    dev_data = load_dataset(mode="valid", dataset= "ATIS")
-    test_data = load_dataset(mode = "test", dataset="ATIS")
-    bt = base_training.BaselineTrainer(model_type= ExtendedModel ,dataset="ATIS")
-    bt.epoch_trainer(train_data, dev_data)
+    parser = argparse.ArgumentParser()
 
-    print("test eval:\n")
-    print(bt.eval(train_data))
+    parser.add_argument("--dataset", default="SNIPS", type=str, help="The name of the dataset to train on")
+    parser.add_argument("--model_type", default="JointBert", type=str, help="Type of model to use fo the task")
+    parser.add_argument("--full_evaluation", default=False, action='store_true', help="Whether or not to "
+                                                                                      "perform training "
+                                                                                      "and evaluation of "
+                                                                                      "all three models, "
+                                                                                      "this argument "
+                                                                                      "overrides all the "
+                                                                                      "others ")
+    parser.add_argument("--train", default=True, type=bool,
+                        help="Whether to train or not the model, if false there must already be a pretrained model")
+    parser.add_argument("--test", default=True, type=bool, help="Whether to test or not the model")
+
+    args = parser.parse_args()
+    main(args)
+
+    # train_data = load_dataset(dataset="ATIS")
+    # dev_data = load_dataset(mode="valid", dataset= "ATIS")
+    # test_data = load_dataset(mode = "test", dataset="ATIS")
+    # bt = base_training.BaselineTrainer(model_type= ExtendedModel ,dataset="ATIS")
+    # bt.epoch_trainer(train_data, dev_data)
+    #
+    # print("test eval:\n")
+    # print(bt.eval(train_data))
     # t = training.JointTrainer(args="", dataset="ATIS", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data)
     # t.train()
     # t.eval("test")
-
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
