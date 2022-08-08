@@ -14,7 +14,7 @@ from tqdm import tqdm, trange
 # else:
 
 
-print(f"Running on colab: {'drive' in os.getcwd()}")
+# print(f"Running on colab: {'drive' in os.getcwd()}")
 
 class BaselineTrainer:
 
@@ -71,7 +71,7 @@ class BaselineTrainer:
 
         return loss_array
 
-    def eval(self, data):
+    def eval(self, data, dict_out = True):
         self.model.eval()
         loss_array = []
 
@@ -133,15 +133,16 @@ class BaselineTrainer:
         #print(hyp_slots)
         flat_ref_slots = [s for u in ref_slots for s in u]  # flattening out for the scikit classification report
         flat_hyp_slots = [s for u in hyp_slots for s in u]
-        report_slots = classification_report(flat_ref_slots, flat_hyp_slots, zero_division=False, output_dict=True)
+
+        report_slots = classification_report(flat_ref_slots, flat_hyp_slots, zero_division=False, output_dict=dict_out)
 
         report_intent = classification_report(ref_intents, hyp_intents,
-                                              zero_division=False, output_dict=True)
+                                              zero_division=False, output_dict=dict_out)
         return report_slots, report_intent, loss_array
 
     def epoch_trainer(self, train_data, dev_data):
         n_epochs = 200
-        patience = 100
+        patience = 5
         losses_train = []
         losses_dev = []
         sampled_epochs = []
@@ -161,8 +162,9 @@ class BaselineTrainer:
                 else:
                     patience -= 1
                 if patience <= 0:  # Early stoping with patient
-                    break  # Not nice but it keeps the code clean
                     print("patience is over")
+                    break  # Not nice but it keeps the code clean
+
 
         results_test, intent_test, _ = self.eval(dev_data)
         print(results_test,"\n______\n", intent_test)
