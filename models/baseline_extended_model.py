@@ -8,7 +8,7 @@ class ExtendedModel(nn.Module): # give the model a proper name
     Model derived from the ModelIAS with the addition of new classification layers and bi-directional LSTM
     """
 
-    def __init__(self, hid_size, out_slot, out_int, emb_size, vocab_len, n_layer=1, pad_index=0):
+    def __init__(self, hid_size, out_slot, out_int, emb_size, vocab_len, n_layer=2, pad_index=0):
         super(ExtendedModel, self).__init__()
         # hid_size = Hidden size
         # out_slot = number of slots (output size for slot filling)
