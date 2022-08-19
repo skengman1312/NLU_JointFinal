@@ -2,8 +2,10 @@ import training
 from dataloader import load_dataset
 import base_training
 from models.baseline_extended_model import ExtendedModel
+from utils import full_evaluation
 import os
 import argparse
+
 
 RunningInCOLAB = 'google.colab' in str(get_ipython()) if hasattr(__builtins__, '__IPYTHON__') else False
 
@@ -19,8 +21,8 @@ def main(args):
                          "baseline": base_training.BaselineTrainer,
                          "extended_baseline": base_training.BaselineTrainer}
     if args.full_evaluation == True:
-        print(args)
-        print("Full eval not yet implemented")
+        print("Full eval started")
+        full_evaluation()
         return
 
     train_data = load_dataset(mode="train", dataset=args.dataset) if args.train else None

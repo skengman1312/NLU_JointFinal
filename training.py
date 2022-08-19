@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import BertConfig, AdamW, get_linear_schedule_with_warmup
 from models.JointBert_model import JointBERT
 from dataloader import Features, load_dataset
-from utils import compute_metrics
 from conll import evaluate
 from sklearn.metrics import classification_report
 
