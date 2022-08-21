@@ -22,7 +22,10 @@ def main(args):
                          "extended_baseline": base_training.BaselineTrainer}
     if args.full_evaluation == True:
         print("Full eval started")
-        full_evaluation()
+        if args.model_type != "JointBert":
+            full_evaluation(modeltype=args.model_type)
+        else:
+            full_evaluation()
         return
 
     train_data = load_dataset(mode="train", dataset=args.dataset) if args.train else None
