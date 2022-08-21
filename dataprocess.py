@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 def vocab_processor(dataset: str):
     """
 
-    :param dataset: name of the dataset. either ATIS or SNIP
+    :param dataset: name of the dataset. either ATIS or SNIPS
     :return:
     """
     dirpath = f"./data/{dataset.upper()}/"
