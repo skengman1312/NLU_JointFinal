@@ -129,8 +129,8 @@ class BaselineTrainer:
         #     hyp_s = set([x[1] for x in hyp_slots])
         #     print(hyp_s.difference(ref_s))
 
-        #print(ref_slots)
-        #print(hyp_slots)
+        #print(ref_slots[0])
+        #print(hyp_slots[0])
         flat_ref_slots = [s for u in ref_slots for s in u]  # flattening out for the scikit classification report
         flat_hyp_slots = [s for u in hyp_slots for s in u]
 

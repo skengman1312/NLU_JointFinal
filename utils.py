@@ -8,6 +8,7 @@ from datetime import datetime
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+import os
 
 def full_evaluation(iter = 5, modeltype ="baseline"):
     modelmap = {"baseline": ModelIAS, "extended_baseline": ExtendedModel}
@@ -41,7 +42,7 @@ def full_evaluation(iter = 5, modeltype ="baseline"):
     return
 
 
-def data_summary(dataset="SNIPS"):
+def dataset_label_summary(dataset="SNIPS"):
     if dataset == "ATIS":
         data = pd.read_json("./data/ATIS/train.json")
         train, dev = train_test_split(data, test_size=0.12, random_state=1312)  # we set a random state in order
@@ -79,6 +80,24 @@ def data_summary(dataset="SNIPS"):
     #plt.tight_layout()
     #plt.xlabel("")
     plt.show()
+    print(slots_info.fillna(0).std(axis = 1).sort_values())
+
+def dataset_utterance_summary():
+    common_path, datasets = "./data/",  ["SNIPS", "ATIS"]
+    all_utterances_lenght = dict()
+    for d in datasets:
+        dfs = [pd.read_json(f) for f in os.scandir(common_path+d) if f.path.endswith(".json")]
+
+        full_dataset = pd.concat(dfs, ignore_index=True)
+        print(full_dataset["utterance"].str.split())
+        utt_len = pd.DataFrame([len(u) for u in full_dataset["utterance"].str.split()])
+        print(full_dataset["utterance"][ utt_len[0].argmin()])
+        all_utterances_lenght[d] = utt_len[0]
+    print(all_utterances_lenght)
+    all_utt_df = pd.DataFrame(all_utterances_lenght)
+    all_utt_df.plot(kind="box", title = "Utterance lenght distrubution")
+    plt.show()
+    print(all_utt_df)
 
 
 
