@@ -110,9 +110,12 @@ class BaselineTrainer:
                     #length = torch.LongTensor([t.count_nonzero() for t in sample[0]])
                     #utt_ids = sample[0][id_seq][:length].tolist()
                     gt_ids = sample[4][id_seq].tolist()
+                    msk = sample[4][id_seq].ne(0)
                     gt_slots = [self.slot_labels[elem] for elem in gt_ids[:length[id_seq]]]
+                    gt_slots = [self.slot_labels[elem] for elem in sample[4][id_seq][msk].tolist()] # fix in case delete
                     #utterance = [lang.id2word[elem] for elem in utt_ids]
                     to_decode = seq[:length[id_seq]].tolist()
+                    to_decode = seq[msk[:len(seq)]].tolist() # fix in case delete
                     #ref_slots.append([(utterance[id_el], elem) for id_el, elem in enumerate(gt_slots)])
                     ref_slots.append([elem for elem in gt_slots])
                     tmp_seq = []
@@ -120,6 +123,11 @@ class BaselineTrainer:
                         #tmp_seq.append((utterance[id_el], lang.id2slot[elem]))
                         tmp_seq.append(self.slot_labels[elem])
                     hyp_slots.append(tmp_seq)
+                    #print("gt:",gt_ids)
+                    #print("masked gt:",  sample[4][id_seq][msk].tolist())
+                    #print("out:",to_decode)
+                    #print("masked out:", seq[msk[:len(seq)]].tolist())
+                    break
         # try:
         #     results = evaluate(ref_slots, hyp_slots)
         # except Exception as ex:
