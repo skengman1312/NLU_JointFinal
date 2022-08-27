@@ -60,6 +60,9 @@ def dataset_label_summary(dataset="SNIPS"):
                                 "dev": dev["intent"].value_counts(normalize=True)
                                 })
     print(intent_info)
+    print(intent_info["train"].argmax())
+    print(intent_info["train"][ intent_info["train"].isna()])
+
     intent_info.plot( use_index=True, y=["train", "test", "dev"], kind="bar")
     plt.ylabel("percentage")
     plt.tight_layout()
@@ -80,6 +83,7 @@ def dataset_label_summary(dataset="SNIPS"):
     #plt.tight_layout()
     #plt.xlabel("")
     plt.show()
+
     print(slots_info.fillna(0).std(axis = 1).sort_values())
 
 def dataset_utterance_summary():
