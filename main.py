@@ -51,7 +51,10 @@ def main(args):
     if args.train:
         t.epoch_trainer(train_data=train_data, dev_data=dev_data)
     if args.test:
-        rs, ri, _ = t.eval(data=test_data, dict_out=False)
+        if args.model_type == "JointBert":
+            rs, ri, _ = t.eval(data=test_data, dict_out=False)
+        else:
+            rs, ri, _, __ = t.eval(data=test_data, dict_out=False)
         print(rs)
         print(ri)
 

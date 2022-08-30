@@ -30,7 +30,7 @@ def full_evaluation(iter = 5, modeltype ="baseline"):
         intent_acc = np.fromiter(res["intent accuracy"].values(), dtype=float)
         now = datetime.now()
         slotline = f"Slot F1 {round(slot_f1s.mean(), 3)} +- {round(slot_f1s.std(), 3)} {now}\n"
-        intentline = f"Intent Accuracy {round(intent_acc.mean(), 3)} +- {round(slot_f1s.std(), 3)} {now}\n"
+        intentline = f"Intent Accuracy {round(intent_acc.mean(), 3)} +- {round(intent_acc.std(), 3)} {now}\n"
         with open("full_evaluation_result.txt","a")as f:
             f.write(f"{dataset}--{modeltype}\n")
             f.write(slotline)
@@ -78,13 +78,14 @@ def dataset_label_summary(dataset="SNIPS"):
 
     })
     print(slots_info)
+    print(slots_info["train"][slots_info["train"].isna()])
+    print(slots_info["train"].sort_values())
     slots_info.plot(use_index=True, y=["train", "test", "dev"], kind="bar")
     plt.ylabel("percentage")
-    #plt.tight_layout()
-    #plt.xlabel("")
+
     plt.show()
 
-    print(slots_info.fillna(0).std(axis = 1).sort_values())
+    #print(slots_info.fillna(0).std(axis = 1).sort_values())
 
 def dataset_utterance_summary():
     common_path, datasets = "./data/",  ["SNIPS", "ATIS"]

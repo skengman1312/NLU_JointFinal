@@ -1,4 +1,6 @@
 import os
+
+import pandas as pd
 from tqdm import tqdm, trange
 import numpy as np
 import torch
@@ -6,8 +8,8 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import BertConfig, AdamW, get_linear_schedule_with_warmup
 from models.JointBert_model import JointBERT
 from dataloader import Features, load_dataset
-from conll import evaluate
 from sklearn.metrics import classification_report
+import matplotlib.pyplot as plt
 
 
 class JointTrainer:
@@ -69,6 +71,8 @@ class JointTrainer:
 
         global_steps = 0
         train_loss = 0.0
+        train_losses = []
+        dev_losses = []
         self.model.zero_grad()
 
         train_iter = trange(int(train_epochs), desc="Epoch")
@@ -105,8 +109,17 @@ class JointTrainer:
 
                     if global_steps % 200 == 0:  # can be tuned
                         self.save_model()
-                    if global_steps % 1000 == 0:
-                        self.eval(mode="dev")
+                    if global_steps % 100 == 0:
+                        _, dev_loss = self.eval(mode="dev")
+                        train_losses.append(loss.item())
+                        dev_losses.append(dev_loss)
+            print(train_loss / global_steps)
+            print(train_loss)
+        losses = pd.DataFrame({"train loss": train_losses, "dev loss": dev_losses})
+        losses.plot(use_index=True, y=["train loss", "dev loss"], kind="line")
+        losses.to_csv(f"losses.csv")
+        plt.savefig("losses.png")
+        plt.show()
 
         return global_steps, train_loss / global_steps
 
@@ -197,8 +210,8 @@ class JointTrainer:
         ev_slot = classification_report([y for u in out_slot_labels for y in u], [y for u in slot_pred_list for y in u],
                                         zero_division=False,
                                         output_dict=mode == "dev")
-        ev_intent = classification_report(out_intent_label_ids, intent_preds,  zero_division=False, output_dict=mode == "dev")
-        # print(slot_pred_list)
+        ev_intent = classification_report(out_intent_label_ids, intent_preds, zero_division=False,
+                                          output_dict=mode == "dev")
         ev_met = {"slots": ev_slot, "intent": ev_intent}
 
         if mode == "dev":
@@ -207,7 +220,7 @@ class JointTrainer:
         else:
             for t, m in ev_met.items():
                 print(f"{t}:\n{m}")
-        return ev_met
+        return ev_met, eval_loss
 
     def save_model(self):
         if not os.path.exists("./trained_models/"):
@@ -236,8 +249,8 @@ class JointTrainer:
 
 if __name__ == '__main__':
     train_data = load_dataset(dataset="ATIS")
-    dev_data = load_dataset(mode="valid",dataset="ATIS")
-    test_data = load_dataset(mode = "test",dataset="ATIS")
-    #t = JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data, dataset="ATIS")
-    #t.load_model()
-    #res = t.eval("test")
+    dev_data = load_dataset(mode="valid", dataset="ATIS")
+    test_data = load_dataset(mode="test", dataset="ATIS")
+    t = JointTrainer(args="", train_dataset=train_data, dev_dataset=dev_data, test_dataset=test_data, dataset="ATIS")
+    t.load_model()
+    res = t.eval("test")
